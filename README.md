@@ -1,7 +1,9 @@
 # 📦 Invoice App
 
-[![RSpec Tests](https://github.com/antimasingh070/invoice_app/actions/workflows/rspec.yml/badge.svg)](https://github.com/antimasingh070/invoice_app/actions)
-[![codecov](https://codecov.io/gh/antimasingh070/invoice_app/branch/main/graph/badge.svg)](https://codecov.io/gh/antimasingh070/invoice_app)
+[![CI Pipeline](https://github.com/antimasingh070/invoice_app/actions/workflows/ci.yml/badge.svg)](https://github.com/antimasingh070/invoice_app/actions)
+[![Codecov](https://codecov.io/gh/antimasingh070/invoice_app/branch/main/graph/badge.svg?token=76b4d3e9-fab8-4d5f-82c6-5f5a7c80129f)](https://codecov.io/gh/antimasingh070/invoice_app)
+
+
 
 A simple Ruby on Rails 7 application that manages **Invoices** and **Payments**.  
 Each invoice can have multiple payments and supports **partial payments**.  

@@ -1,12 +1,14 @@
-name: CI
+name: CI Pipeline
 
 on:
-  pull_request:
   push:
+    branches: [ main ]
+  pull_request:
     branches: [ main ]
 
 jobs:
   scan_ruby:
+    name: 🔒 Ruby Security Scan
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
@@ -18,25 +20,27 @@ jobs:
           ruby-version: .ruby-version
           bundler-cache: true
 
-      - name: Scan for common Rails security vulnerabilities using static analysis
+      - name: Scan for common Rails vulnerabilities
         run: bin/brakeman --no-pager
 
   scan_js:
+    name: ⚙️ JavaScript Dependency Audit
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Set up Ruby
+      - name: Install Ruby (for importmap audit)
         uses: ruby/setup-ruby@v1
         with:
           ruby-version: .ruby-version
           bundler-cache: true
 
-      - name: Scan for security vulnerabilities in JavaScript dependencies
+      - name: Scan JS dependencies
         run: bin/importmap audit
 
   lint:
+    name: 🧹 Lint Ruby Code
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
@@ -48,11 +52,32 @@ jobs:
           ruby-version: .ruby-version
           bundler-cache: true
 
-      - name: Lint code for consistent style
+      - name: Run Rubocop for style consistency
         run: bin/rubocop -f github
 
   test:
+    name: ✅ Run RSpec Tests with Coverage
     runs-on: ubuntu-latest
+
+    services:
+      postgres:
+        image: postgres:14
+        ports: ['5432:5432']
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: password
+          POSTGRES_DB: test_db
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    env:
+      RAILS_ENV: test
+      DATABASE_URL: postgres://postgres:password@localhost:5432/test_db
+      CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -68,8 +93,15 @@ jobs:
 
       - name: Prepare Test Database
         run: |
-          bundle exec rails db:create RAILS_ENV=test
-          bundle exec rails db:migrate RAILS_ENV=test
+          bundle exec rails db:create
+          bundle exec rails db:migrate
 
       - name: Run RSpec tests with coverage
         run: bundle exec rspec
+
+      - name: Upload coverage to Codecov
+        uses: codecov/codecov-action@v5
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
+          slug: antimasingh070/invoice_app
+          fail_ci_if_error: true
